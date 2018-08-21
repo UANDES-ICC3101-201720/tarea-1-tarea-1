@@ -12,8 +12,20 @@
 #include "util.h"
 
 // TODO: implement
-int serial_binsearch() {
-    return 0;
+int serial_binsearch(float list[], int n, int target) {
+    int low = 0, mid, high = n-1; // define the lowest, mid and highest positions
+    while (low <= high) {
+         mid = (low + high) / 2;
+         printf("low: %d mid: %d high: %d\n", low, mid, high);
+         if (list[mid] < target) {
+            low = mid + 1;
+        }
+         else if (list[mid] > target) {
+            high = mid - 1;
+        }
+     }
+     return mid;
+    
 }
 
 // TODO: implement
@@ -39,6 +51,10 @@ int main(int argc, char** argv) {
     /* TODO: implement code for your experiments using data provided by datagen and your
      * serial and parallel versions of binsearch.
      * */
+
+    float list[11] = {0.5, 1.5, 3.5, 4.0, 5.1, 7.0, 10.32, 20.1, 100.2, 150.3, 200.02}; 
+
+    printf("%d\n", serial_binsearch(list, 11, 200.02));
 
     /* TODO: connect to datagen and ask for the necessary data in each experiment round.
      * Create a Unix domain socket with DSOCKET_PATH (see const.h).
