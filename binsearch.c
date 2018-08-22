@@ -13,8 +13,13 @@
 #include <ctype.h>
 #include <pthread.h>
 
+float list[16];
+int n = sizeof(list);
+int target;
+bool key_found = false;
+
 // TODO: implement
-int serial_binsearch(float list[], int n, int target) {
+void* serial_binsearch(void *params) {
     int low = 0, mid, high = n-1; // define the lowest, mid and highest positions
     while (low <= high) {
          mid = (low + high) / 2;
@@ -24,14 +29,22 @@ int serial_binsearch(float list[], int n, int target) {
          else if (list[mid] > target) {
             high = mid - 1;
         }
+        else if (list[mid] == target)  {
+            key_found = true;
+            break;
+        }
      }
-     return mid;
     
 }
 
 // TODO: implement
-int parallel_binsearch(float list[], int n, int target) {
-    int low, mid, high;
+int max_threads = sysconf(_SC_NPROCESSORS_ONLN);
+int part = 0;
+void* parallel_binsearch(void *params) {
+    int thread_part = part++;
+    int low = thread_part * (n / max_threads); //each thread will check 1 / max_threads of the array
+    int mid;
+    int high =(thread_part + 1) * (n / max_threads);
 
     while (low <= high) {
         mid = (high - low) / 2 + low;
@@ -41,21 +54,15 @@ int parallel_binsearch(float list[], int n, int target) {
         else if (list[mid] > target) {
             high = mid - 1;
         }
+        else else if (list[mid] == target)  {
+            key_found = true;
+            break;
+        }
 
     }
-    return mid;
 }
 
 int main(int argc, char** argv) {
-    /* TODO: move this time measurement to right before the execution of each binsearch algorithms
-     * in your experiment code. It now stands here just for demonstrating time measurement. */
-    clock_t cbegin = clock();
-
-    printf("[binsearch] Starting up...\n");
-
-    /* Get the number of CPU cores available */
-    printf("[binsearch] Number of cores available: '%ld'\n",
-           sysconf(_SC_NPROCESSORS_ONLN));
 
     /* TODO: parse arguments with getopt */
     int E_value;
@@ -102,14 +109,33 @@ int main(int argc, char** argv) {
         fprintf(stderr, "[binsearch] Invalid value for T flag\n");
     }
     else if (P_value < 0 || P_value > pow(10, T_value) - 1) {
-        fprintf(stderr, "[binsearch] Invalid value for P flag\n", ); 
+        fprintf(stderr, "[binsearch] Invalid value for P flag\n"); 
      }
-    printf("[binsearch] E_value: %d\nT_value: %d\nP_value: %d\n", E_value, T_value, P_value);
     for (index = optind; index < argc; index++)
         printf ("[binsearch] Non-option argument %s\n", argv[index]);
+    
     /* TODO: start datagen here as a child process. */
 
-    /*hacer fork y un for*/
+    pid_t pid_datagen;
+    pid_datagen = fork();
+    if (pid_datagen == -1) {
+        perror("[binsearch] Fork failed!");
+        exit(EXIT_FAILURE);
+    }
+    else if (pid_datagen == 0) {
+        printf("[binsearch] Datagen created as a child process\n");
+        _exit(EXIT_SUCCESS);
+    }
+
+
+    /* TODO: move this time measurement to right before the execution of each binsearch algorithms
+     * in your experiment code. It now stands here just for demonstrating time measurement. */
+    clock_t cbegin = clock();
+
+    printf("[binsearch] Starting up...\n");
+
+    /* Get the number of CPU cores available */
+    printf("[binsearch] Number of cores available: '%ld'\n", sysconf(_SC_NPROCESSORS_ONLN));
 
     /* TODO: implement code for your experiments using data provided by datagen and your
      * serial and parallel versions of binsearch.
@@ -132,5 +158,5 @@ int main(int argc, char** argv) {
 
     printf("Time elapsed '%lf' [ms].\n", time_elapsed);
 
-    exit(0);
+    exit(EXIT_SUCCESS);
 }

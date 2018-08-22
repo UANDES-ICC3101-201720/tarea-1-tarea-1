@@ -53,7 +53,6 @@ int main(int argc, char** argv) {
     struct sockaddr_un addr;
     char buf[100];
     int fd,cl,rc;
-
     if ( (fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
         perror("[datagen] Error creating socket.\n");
         exit(-1);
