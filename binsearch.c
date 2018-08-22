@@ -11,13 +11,13 @@
 #include "const.h"
 #include "util.h"
 #include <ctype.h>
+#include <pthread.h>
 
 // TODO: implement
 int serial_binsearch(float list[], int n, int target) {
     int low = 0, mid, high = n-1; // define the lowest, mid and highest positions
     while (low <= high) {
          mid = (low + high) / 2;
-         printf("low: %d mid: %d high: %d\n", low, mid, high);
          if (list[mid] < target) {
             low = mid + 1;
         }
@@ -30,8 +30,20 @@ int serial_binsearch(float list[], int n, int target) {
 }
 
 // TODO: implement
-int parallel_binsearch() {
-    return 0;
+int parallel_binsearch(float list[], int n, int target) {
+    int low, mid, high;
+
+    while (low <= high) {
+        mid = (high - low) / 2 + low;
+        if (list[mid] < target){
+            low = mid + 1;
+        }
+        else if (list[mid] > target) {
+            high = mid - 1;
+        }
+
+    }
+    return mid;
 }
 
 int main(int argc, char** argv) {
@@ -55,21 +67,20 @@ int main(int argc, char** argv) {
 
     opterr = 0;
 
-    if (argc == 1)
-    {
+    if (argc == 1) {
         fprintf(stderr, "[binsearch] No arguments where given\n");
         exit(-2);
     }
 
-    while( (c = getopt(argc, argv, "e:t:p:")) != -1) {
+    while( (c = getopt(argc, argv, "E:T:P:")) != -1) {
         switch(c) {
-            case 'e':
+            case 'E':
                 E_value = atoi(optarg);
                 break;
-            case 't':
+            case 'T':
                 T_value = atoi(optarg);
                 break;
-            case 'p':
+            case 'P':
                 P_value = atoi(optarg);
                 break;
             case '?':
@@ -84,14 +95,26 @@ int main(int argc, char** argv) {
 
     }
 
+    if (E_value < 1) {
+        fprintf(stderr, "[binsearch] Invalid value for E flag\n");
+    }
+    else if (T_value < 3 || T_value > 9) {
+        fprintf(stderr, "[binsearch] Invalid value for T flag\n");
+    }
+    else if (P_value < 0 || P_value > pow(10, T_value) - 1) {
+        fprintf(stderr, "[binsearch] Invalid value for P flag\n", ); 
+     }
     printf("[binsearch] E_value: %d\nT_value: %d\nP_value: %d\n", E_value, T_value, P_value);
     for (index = optind; index < argc; index++)
         printf ("[binsearch] Non-option argument %s\n", argv[index]);
     /* TODO: start datagen here as a child process. */
 
+    /*hacer fork y un for*/
+
     /* TODO: implement code for your experiments using data provided by datagen and your
      * serial and parallel versions of binsearch.
      * */
+
 
 
     /* TODO: connect to datagen and ask for the necessary data in each experiment round.
