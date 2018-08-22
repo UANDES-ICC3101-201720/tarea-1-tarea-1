@@ -10,6 +10,7 @@
 #include "types.h"
 #include "const.h"
 #include "util.h"
+#include <ctype.h>
 
 // TODO: implement
 int serial_binsearch(float list[], int n, int target) {
@@ -45,16 +46,53 @@ int main(int argc, char** argv) {
            sysconf(_SC_NPROCESSORS_ONLN));
 
     /* TODO: parse arguments with getopt */
+    int E_value;
+    int T_value;
+    int P_value;
 
+    int index;
+    int c;
+
+    opterr = 0;
+
+    if (argc == 1)
+    {
+        fprintf(stderr, "[binsearch] No arguments where given\n");
+        exit(-2);
+    }
+
+    while( (c = getopt(argc, argv, "e:t:p:")) != -1) {
+        switch(c) {
+            case 'e':
+                E_value = atoi(optarg);
+                break;
+            case 't':
+                T_value = atoi(optarg);
+                break;
+            case 'p':
+                P_value = atoi(optarg);
+                break;
+            case '?':
+                if (isprint (optopt))
+                    fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+                else
+                    fprintf (stderr, "Unknown option character `\\x%x'.\n", optopt);
+                return 1;
+            default: 
+                abort();
+        }
+
+    }
+
+    printf("[binsearch] E_value: %d\nT_value: %d\nP_value: %d\n", E_value, T_value, P_value);
+    for (index = optind; index < argc; index++)
+        printf ("[binsearch] Non-option argument %s\n", argv[index]);
     /* TODO: start datagen here as a child process. */
 
     /* TODO: implement code for your experiments using data provided by datagen and your
      * serial and parallel versions of binsearch.
      * */
 
-    float list[11] = {0.5, 1.5, 3.5, 4.0, 5.1, 7.0, 10.32, 20.1, 100.2, 150.3, 200.02}; 
-
-    printf("%d\n", serial_binsearch(list, 11, 200.02));
 
     /* TODO: connect to datagen and ask for the necessary data in each experiment round.
      * Create a Unix domain socket with DSOCKET_PATH (see const.h).
