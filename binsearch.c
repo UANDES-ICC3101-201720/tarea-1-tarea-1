@@ -13,15 +13,18 @@
 #include <ctype.h>
 #include <pthread.h>
 
-float list[16];
+int list[16];
 int n = sizeof(list);
 int target;
-bool key_found = false;
+bool found = false;
+int max_threads;
+int part = 0;
+int n;
 
 // TODO: implement
-void* serial_binsearch(void *params) {
+void* serial_binsearch(void* params) {
     int low = 0, mid, high = n-1; // define the lowest, mid and highest positions
-    while (low <= high) {
+    while (low <= high && !found) {
          mid = (low + high) / 2;
          if (list[mid] < target) {
             low = mid + 1;
@@ -30,37 +33,32 @@ void* serial_binsearch(void *params) {
             high = mid - 1;
         }
         else if (list[mid] == target)  {
-            key_found = true;
+            found = true;
             break;
         }
-     }
-    
+     }   
 }
 
 // TODO: implement
-int max_threads = sysconf(_SC_NPROCESSORS_ONLN);
-int part = 0;
-void* parallel_binsearch(void *params) {
-    int thread_part = part++;
-    int low = thread_part * (n / max_threads); //each thread will check 1 / max_threads of the array
-    int mid;
-    int high =(thread_part + 1) * (n / max_threads);
 
-    while (low <= high) {
+void* parallel_binsearch(void* params) {
+    int thread_part = part++;
+    int mid;
+    int low = thread_part * (n / max_threads);
+    int high = (thread_part + 1) * (n / max_threads);
+    while (low < high && !found)  {
         mid = (high - low) / 2 + low;
-        if (list[mid] < target){
-            low = mid + 1;
-        }
-        else if (list[mid] > target) {
-            high = mid - 1;
-        }
-        else else if (list[mid] == target)  {
-            key_found = true;
+        if (list[mid] == target)  {
+            found = true;
             break;
         }
-
+        else if (list[mid] > target)
+            high = mid - 1;
+        else
+            low = mid + 1;
     }
 }
+
 
 int main(int argc, char** argv) {
 
@@ -102,6 +100,7 @@ int main(int argc, char** argv) {
 
     }
 
+    /*Here we check that flag values are in the correct ranges*/
     if (E_value < 1) {
         fprintf(stderr, "[binsearch] Invalid value for E flag\n");
     }
@@ -114,19 +113,12 @@ int main(int argc, char** argv) {
     for (index = optind; index < argc; index++)
         printf ("[binsearch] Non-option argument %s\n", argv[index]);
     
+    n = P_value; /*Amount of values in the array */
+    max_threads = sysconf(_SC_NPROCESSORS_ONLN); /* Max amount of processors to be used */
+
+
     /* TODO: start datagen here as a child process. */
-
-    pid_t pid_datagen;
-    pid_datagen = fork();
-    if (pid_datagen == -1) {
-        perror("[binsearch] Fork failed!");
-        exit(EXIT_FAILURE);
-    }
-    else if (pid_datagen == 0) {
-        printf("[binsearch] Datagen created as a child process\n");
-        _exit(EXIT_SUCCESS);
-    }
-
+ 
 
     /* TODO: move this time measurement to right before the execution of each binsearch algorithms
      * in your experiment code. It now stands here just for demonstrating time measurement. */
@@ -141,8 +133,18 @@ int main(int argc, char** argv) {
      * serial and parallel versions of binsearch.
      * */
 
-
-
+    pthread_t threads[max_threads];
+    for (int i = 0; i < max_threads; i++)
+        pthread_create(&threads[i], NULL, parallel_binsearch, (void*)NULL);
+ 
+    for (int i = 0; i < max_threads; i++)
+        pthread_join(threads[i], NULL);
+    if (found) {
+        printf("target %d found\n", target);
+    }
+    else {
+        printf("target %d not found\n", target);
+    }
     /* TODO: connect to datagen and ask for the necessary data in each experiment round.
      * Create a Unix domain socket with DSOCKET_PATH (see const.h).
      * Talk to datagen using the messages specified in the assignment description document.
