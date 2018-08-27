@@ -145,7 +145,6 @@ int main(int argc, char** argv) {
     else {
         printf("target %d not found\n", target);
     }
-
     /* TODO: connect to datagen and ask for the necessary data in each experiment round.
      * Create a Unix domain socket with DSOCKET_PATH (see const.h).
      * Talk to datagen using the messages specified in the assignment description document.
@@ -154,42 +153,31 @@ int main(int argc, char** argv) {
      * */
     // Variables
     struct sockaddr_un addr;
-    char buf[1000];
+    char buf[100];
     int fd, rc;
-
+    
     if ( (fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1 ){
-        perror("[binsearch] socket error");
+        perror("socket error");
         exit(-1);
     }
-
+    
     memset(&addr, 0, sizeof(addr));
     addr.sun_family = AF_UNIX;
-
-
-    if (*socket_path == DSOCKET_PATH) {
+    
+    if( *socket_path == DSOCKET_PATH ){
         *addr.sun_path = DSOCKET_PATH;
         strncpy(addr.sun_path + 1, socket_path + 1, sizeof(addr.sun_path - 2));
-    } else {
+    } else{ 
         strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
-        printf("loop");
     }
-
-
-    while ( connect(fd, (struct sockaddr*)&addr, sizeof(addr)) == -1){
-        perror("[binsearch] connect error");
+    
+    if ( connect(fd, (struct sockaddr*)&addr, sizeof(addr)) == -1){
+        perror("connect error");
     }
-
-    if ( connect(fd, (struct sockaddr*)&addr, sizeof(addr)) != -1){
-        printf("[binsearch] connected");
-    }
-
-    printf("hola");
+    
     while ( (rc = read(STDIN_FILENO, buf, sizeof(buf))) > 0 ){
-        printf("rc: %d, buf: %s\n", rc,buf);
-        if(write(fd, buf, rc) != rc){
-	    if (rc > 0){
-                fprintf(stderr, "partial write");
-            }
+        if(write(fd, buf, rc) != rc) {
+            if (rc > 0) fprinf(stderr, "partial write");
             else {
                 perror("write error");
                 exit(-1);
