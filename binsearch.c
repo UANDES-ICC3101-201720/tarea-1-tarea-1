@@ -118,9 +118,7 @@ int main(int argc, char** argv) {
 
 
     /* TODO: start datagen here as a child process. */
-
     int pid = fork();
-
     if (pid < 0) {
         perror("[binsearch] fork error.");
     }
@@ -141,8 +139,9 @@ int main(int argc, char** argv) {
     
     // Variables
     struct sockaddr_un addr;
-    char buf[1000];
-    int fd, rc;
+    char buf[100];
+    char buf2[1000];
+    int fd, rc, rs;
 
     if ( (fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1 ){
         perror("[binsearch] socket error");
@@ -153,37 +152,72 @@ int main(int argc, char** argv) {
     addr.sun_family = AF_UNIX;
 
 
-    if (*socket_path == DSOCKET_PATH) {
-        *addr.sun_path = DSOCKET_PATH;
-        strncpy(addr.sun_path + 1, socket_path + 1, sizeof(addr.sun_path - 2));
-    } else {
-        strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
-    }
-
+    strcpy(addr.sun_path, "/tmp/dg.sock");
+    //if (strcmp(socket_path, DSOCKET_PATH) == 0) {
+    //    strcpy(addr.sun_path, DSOCKET_PATH);
+    //    // *addr.sun_path = DSOCKET_PATH;
+    //    strncpy(addr.sun_path + 1, socket_path + 1, sizeof(addr.sun_path - 2));
+    //} else {
+    //    strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
+    //}
 
     while ( connect(fd, (struct sockaddr*)&addr, sizeof(addr)) == -1){
         perror("[binsearch] connect error");
-        exit(-1);
     }
 
     if ( connect(fd, (struct sockaddr*)&addr, sizeof(addr)) != -1){
         printf("[binsearch] connected");
-        exit(-1);
+        //exit(-1);
     }
 
+    // begin
     while ( (rc = read(STDIN_FILENO, buf, sizeof(buf))) > 0 ){
-        printf("rc: %d, buf: %s\n", rc, buf);
+        printf("[binsearch] datagen lee el input \n");
         if(write(fd, buf, rc) != rc){
+            printf("[binsearch] binsearch le escribe a datagen\n");
+
             if (rc > 0){
-                fprintf(stderr, "partial write");
+                printf("[binsearch] rc > 0\n");
             }
             else {
-                perror("write error");
+                perror("[binsearch] write error");
                 exit(-1);
             }
         }
+        int leidos = 0;
+        unsigned int *numero = NULL;
+        char *primero;
+        char *segundo;
+        char *tercero;
+        char *cuarto;
+
+        // leo lo que me entrega el servidor
+        rs = (int) read(fd, buf2, sizeof(buf2));
+        if (rs > 0){
+            int i = 0;
+            while(leidos != 1000) {
+                // los primeros 4 chars son: "OK\n\n"
+                if(leidos == 0) {
+                    primero = (char *)&(buf2);
+                    segundo = (char *)&(buf2) + 1;
+                    tercero = (char *)&(buf2) + 2;
+                    cuarto = (char *)&(buf2) + 3;
+                    printf("'%c''%c''%c''%c' ACA TERMINA\n", *primero,*segundo, *tercero, *cuarto);
+                    leidos = 4;
+                    continue;
+                }
+                // aqui se supone que deberia empezar a dar unsigned ints
+                numero = (unsigned int *) &buf2 + leidos;
+                printf("%d Numero: %u\n",i, numero[0]); *numero += sizeof(unsigned int);
+                leidos = leidos + 4;
+                i++;
+            }
+
+        }
+        memset(buf, 0, sizeof(buf));
+        memset(buf2, 0, sizeof(buf2));
+
     }
-    
     
     n = P_value; /*Amount of values in the array */
     max_threads = sysconf(_SC_NPROCESSORS_ONLN); /* Max amount of processors to be used */
