@@ -2,11 +2,11 @@
 #include <stdlib.h>
 
 int main() {
-  unsigned int hola[10] = [1,2,3,4,5,6,7,8,9,10];
+  unsigned int hola[10] = {1,2,3,4,5,6,7,8,9,10};
   unsigned int *actual = NULL;
   
   actual = (unsigned int *)&hola;
-  printf("%u\n", actual[0]); *actual++;
+  printf("%u\n", actual[0]); *actual+= sizeof(unsigned int);
   printf("%u\n", actual[0]); *actual++;
   printf("%u\n", actual[0]); *actual++;
   printf("%u\n", actual[0]); *actual++;

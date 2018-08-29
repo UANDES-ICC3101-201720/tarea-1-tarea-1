@@ -209,7 +209,7 @@ int main(int argc, char** argv) {
                 // aqui se supone que deberia empezar a dar unsigned ints
                 numero = (unsigned int *) &buf2 + leidos;
                 printf("%d Numero: %u\n",i, numero[0]); *numero += sizeof(unsigned int);
-                leidos = leidos + 4;
+                leidos = leidos + 1;
                 i++;
             }
 
