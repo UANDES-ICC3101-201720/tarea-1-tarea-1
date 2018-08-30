@@ -15,7 +15,6 @@
     <list default="true" id="64704269-a6e3-404e-b4bc-ad6d05d67eda" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/binsearch" beforeDir="false" afterPath="$PROJECT_DIR$/binsearch" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/binsearch.c" beforeDir="false" afterPath="$PROJECT_DIR$/binsearch.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.c" beforeDir="false" afterPath="$PROJECT_DIR$/test.c" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -74,8 +73,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/binsearch.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="159">
-              <caret line="207" column="10" lean-forward="true" selection-start-line="207" selection-start-column="10" selection-end-line="207" selection-end-column="10" />
+            <state relative-caret-position="174">
+              <caret line="208" column="10" lean-forward="true" selection-start-line="208" selection-start-column="10" selection-end-line="208" selection-end-column="10" />
             </state>
           </provider>
         </entry>
@@ -151,7 +150,7 @@
     <detection-done>true</detection-done>
     <sorting>DEFINITION_ORDER</sorting>
   </component>
-  <component name="ProjectFrameBounds" extendedState="7">
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="114" />
     <option name="y" value="25" />
     <option name="width" value="1161" />
@@ -233,15 +232,15 @@
       <workItem from="1535331656700" duration="1957000" />
       <workItem from="1535425512115" duration="309000" />
       <workItem from="1535425844788" duration="426000" />
-      <workItem from="1535426273060" duration="24930000" />
+      <workItem from="1535426273060" duration="25528000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="27622000" />
+    <option name="totallyTimeSpent" value="28220000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="67" y="25" width="1299" height="743" extended-state="7" />
+    <frame x="67" y="25" width="1299" height="743" extended-state="6" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.11572227" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -276,12 +275,12 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/binsearch.c</url>
-          <line>173</line>
+          <line>181</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/binsearch.c</url>
-          <line>155</line>
+          <line>163</line>
           <option name="timeStamp" value="5" />
         </line-breakpoint>
       </breakpoints>
@@ -317,8 +316,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/binsearch.c">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="159">
-          <caret line="207" column="10" lean-forward="true" selection-start-line="207" selection-start-column="10" selection-end-line="207" selection-end-column="10" />
+        <state relative-caret-position="174">
+          <caret line="208" column="10" lean-forward="true" selection-start-line="208" selection-start-column="10" selection-end-line="208" selection-end-column="10" />
         </state>
       </provider>
     </entry>
