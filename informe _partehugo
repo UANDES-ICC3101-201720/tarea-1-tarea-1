@@ -31,3 +31,7 @@ bool serial_binsearch(unsigned int array[], int n) {
 }
 
 Problemas y limitaciones
+
+Los principales problemas encontrados en esa tarea fueron:
+    1. La creación de threads para implementar el parallel_binsearch, ya que el thread exige una forma de pasarle un metodo y sus parametros, 
+    2. Luego para valores de T > 6 el programa terminaba repentinamente (y apocos ciclos para llegar a los 100 que exige el enunciado) señalando un segmentation fault (core dumped), Claudio publicó una solución al error ya que este ocurria por mal manejo de memoria.

@@ -16,12 +16,13 @@
 #include <signal.h>
 
 int n;
-unsigned int nums[100000000];
+UINT *nums;
 int target;
 bool found = false;
 int max_threads;
-int part = 0;
-// TODO: implement
+int partition = 0;
+
+
 bool serial_binsearch(unsigned int buf2[], int n) {
     int done = false;
     int low = 0, mid, high = n-1; // define the lowest, mid and highest positions
@@ -33,7 +34,7 @@ bool serial_binsearch(unsigned int buf2[], int n) {
          else if (buf2[mid] > target) {
             high = mid - 1;
         }
-        else if (buf2[mid] == target)  {
+        else {
             done = true;
             break;
         }
@@ -42,25 +43,53 @@ bool serial_binsearch(unsigned int buf2[], int n) {
 }
 
 // TODO: implement
+typedef struct {
+    unsigned int *array;
+    int low;
+    int high;
+    int target;
+} arguments;
 
-void* parallel_binsearch(void* args) {
-    part++;
-    int thread_part = part;
-    int mid;
-    int low = thread_part * (n / max_threads);
-    int high = (thread_part + 1) * (n / max_threads);
-    while (low < high && !found)  {
+
+void* p_binsearch(void* args) {
+    arguments *information = args;
+    int low, mid, high, a;
+
+    a = information->target;
+    low = information->low;
+    high = information->high - 1;
+    
+    partition++;
+    while (low <= high && !found)  {
         mid = (high - low) / 2 + low;
-        if (nums[mid] == target && !found)  {
+        if (a < mid) high = mid + 1;
+        else if(a > mid) low = mid + 1;
+        else {
             found = true;
-            break;
+            pthread_exit(0);
         }
-        else if (nums[mid] > target)
-            high = mid - 1;
-        else
-            low = mid + 1;
     }
     return NULL;
+}
+
+
+void parallel_binsearch(unsigned int arr[], int l, int h, int tar) {
+    pthread_t threads[max_threads];
+    int thread_part = h / max_threads;
+    int count = 1;
+
+    for (int i = 0; i < max_threads; i++) {
+        arguments *information = malloc(sizeof(arguments));
+        information->array = arr;
+        information->low = l;
+        information->target = tar;
+        information->high = (thread_part * count) -1;
+        if(pthread_create(&threads[i], NULL, (void *)p_binsearch, information)) {
+            free(information);
+        }
+        l = thread_part * count;
+        count++;
+    }
 }
 
 char *socket_path = "/tmp/dg.sock";;
@@ -176,9 +205,9 @@ int main(int argc, char** argv) {
     size_t numvalues = pow(10, T_value);
     size_t readbytes = 0;
 
-    UINT *readbuf = malloc(sizeof(UINT) * numvalues);
+    UINT *nums = malloc(sizeof(UINT) * numvalues);
     while(readvalues < numvalues) {
-        readbytes = read(fd, readbuf + readvalues, sizeof(UINT)*1000);
+        readbytes = read(fd, nums + readvalues, sizeof(UINT)*1000);
         readvalues += readbytes / 4;
     }
 
@@ -187,10 +216,6 @@ int main(int argc, char** argv) {
         perror("[binsearch] Error terminating datagen.");
         exit(-1);
     }
-
-        //memset(buf, 0, sizeof(buf));
-        //memset(buf2, 0, sizeof(buf2));
-
     max_threads = sysconf(_SC_NPROCESSORS_ONLN); /* Max amount of processors to be used */
     target = nums[P_value];
     
@@ -202,16 +227,11 @@ int main(int argc, char** argv) {
     /* TODO: implement code for your experiments using data provided by datagen and your
      * serial and parallel versions of binsearch.
      * */
-    for(int i = 0; i < E_value - 1; i++) {
+    for(int i = 0; i < E_value; i++) {
         struct timespec start, finish;
         double elapsed = 0;
         clock_gettime(CLOCK_MONOTONIC, &start);
-        pthread_t threads[max_threads];
-        for (int i = 0; i < max_threads; i++)
-            pthread_create(&threads[i], NULL, parallel_binsearch, (void*)NULL);
-     
-        for (int i = 0; i < max_threads; i++)
-            pthread_join(threads[i], NULL);
+        parallel_binsearch(nums, 0, numvalues, P_value);
         clock_gettime(CLOCK_MONOTONIC, &finish);
         /* Probe time elapsed. */
         elapsed = (finish.tv_sec - start.tv_sec);
@@ -229,6 +249,6 @@ int main(int argc, char** argv) {
         //printf("i = %d\n", i + 1);
         printf("%d,%d,%lf,%lf\n", E_value, T_value, elapsed_2, elapsed);
     }
-    free(readbuf);
+    free(nums);
     exit(EXIT_SUCCESS);
 }
