@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
     int c;
 
     opterr = 0;
-
+    char  char_T_val[2] = "";
     if (argc == 1) {
         fprintf(stderr, "[binsearch] No arguments where given\n");
         exit(-2);
@@ -87,6 +87,7 @@ int main(int argc, char** argv) {
                 E_value = atoi(optarg);
                 break;
             case 'T':
+                strcpy(char_T_val, optarg);
                 T_value = atoi(optarg);
                 break;
             case 'P':
@@ -175,6 +176,8 @@ int main(int argc, char** argv) {
     }
 
     // begin
+    char starting_instruction[] = "BEGIN S ";
+    strcat(starting_instruction, char_T_val); //instruccion completa de inicio
     while ( (rc = read(STDIN_FILENO, buf, sizeof(buf))) > 0 ){
         if(strcmp(buf, "END")>=0){
             // AQUI DEBERIA TERMINAR EL PROCESO DEL DATAGEN Y SEGUIR CON LO DEL OUTPUT...
@@ -229,6 +232,7 @@ int main(int argc, char** argv) {
     /* TODO: implement code for your experiments using data provided by datagen and your
      * serial and parallel versions of binsearch.
      * */
+    for(int i = 0; i < E_value; i++){
     struct timespec start_2, finish_2;
     double elapsed_2 = 0;
     clock_gettime(CLOCK_MONOTONIC, &start_2);
@@ -239,6 +243,7 @@ int main(int argc, char** argv) {
     else {
         printf("[serial_binsearch] target %d not found.\n", target);
     }
+
     clock_gettime(CLOCK_MONOTONIC, &finish_2);
     elapsed_2 = (finish_2.tv_sec - start_2.tv_sec);
     elapsed_2 += (finish_2.tv_sec - start_2.tv_sec) / 1000000000.0;
@@ -266,5 +271,6 @@ int main(int argc, char** argv) {
     elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
 
     printf("%d,%d,%lf,%lf\n", E_value, T_value, elapsed_2, elapsed);
+}
     exit(EXIT_SUCCESS);
 }
