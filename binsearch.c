@@ -13,13 +13,10 @@
 #include <ctype.h>
 #include <pthread.h>
 #include <limits.h>
+#include <signal.h>
 
 int n;
-
-typedef struct {
-    unsigned int *numbers;
-} compute_prime_struct;
-
+unsigned int nums[10000000];
 int target;
 bool found = false;
 int max_threads;
@@ -28,15 +25,15 @@ int part = 0;
 bool serial_binsearch(unsigned int buf2[], int n) {
     int done = false;
     int low = 0, mid, high = n-1; // define the lowest, mid and highest positions
-    while (low <= high && !found) {
+    while (low <= high && !done) {
          mid = (low + high) / 2;
          if (buf2[mid] < target) {
             low = mid + 1;
         }
-         else if (buf2[mid]> target) {
+         else if (buf2[mid] > target) {
             high = mid - 1;
         }
-        else if (buf2[mid]== target)  {
+        else if (buf2[mid] == target)  {
             done = true;
             break;
         }
@@ -47,7 +44,6 @@ bool serial_binsearch(unsigned int buf2[], int n) {
 // TODO: implement
 
 void* parallel_binsearch(void* args) {
-    compute_prime_struct *actual_args = args;
     part++;
     int thread_part = part;
     int mid;
@@ -55,16 +51,15 @@ void* parallel_binsearch(void* args) {
     int high = (thread_part + 1) * (n / max_threads);
     while (low < high && !found)  {
         mid = (high - low) / 2 + low;
-        if ( actual_args->numbers[mid] == target)  {
+        if (nums[mid] == target && !found)  {
             found = true;
             break;
         }
-        else if ( actual_args->numbers[mid] > target)
+        else if (nums[mid] > target)
             high = mid - 1;
         else
             low = mid + 1;
     }
-    free(actual_args);
     return NULL;
 }
 
@@ -147,11 +142,10 @@ int main(int argc, char** argv) {
     // Variables
     struct sockaddr_un addr;
     char buf[100];
-    char buf2[1000];
+    char buf2[10000];
     int fd, rc, rs;
     unsigned int *datagen_numbers = NULL;
     n = pow(10, T_value); /*Amount of values in the array */
-    unsigned int nums[n];
 
     if ( (fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1 ){
         perror("[binsearch] socket error");
@@ -184,18 +178,17 @@ int main(int argc, char** argv) {
     while ( (rc = read(STDIN_FILENO, buf, sizeof(buf))) > 0 ){
         if(strcmp(buf, "END")>=0){
             // AQUI DEBERIA TERMINAR EL PROCESO DEL DATAGEN Y SEGUIR CON LO DEL OUTPUT...
-            exit(-1);
             break;   
         }
-        printf("[binsearch] datagen lee el input \n");
+        printf("[binsearch] datagen reads the input. \n");
         if(write(fd, buf, rc) != rc){
-            printf("[binsearch] binsearch le escribe a datagen\n");
+            printf("[binsearch] binsearch writes to datagen.\n");
 
             if (rc > 0){
                 printf("[binsearch] rc > 0\n");
             }
             else {
-                perror("[binsearch] write error");
+                perror("[binsearch] write error.");
                 exit(-1);
             }
         }
@@ -210,7 +203,7 @@ int main(int argc, char** argv) {
                 // los primeros 4 chars son: "OK\n\n"
                 // aqui se supone que deberia empezar a dar unsigned ints
                 nums[i] = datagen_numbers[0];
-                printf("%d Numero: %u\n",i, nums[i]);
+                //printf("%d Numero: %u\n",i, nums[i]);
                 *datagen_numbers+=sizeof(unsigned int *);
                 if(datagen_numbers[0] <= nums[i]){
                     printf("[DEBUG] anterior: %u, actual: %u ", nums[i], datagen_numbers[0]); 
@@ -224,6 +217,7 @@ int main(int argc, char** argv) {
         memset(buf2, 0, sizeof(buf2));
 
     }
+    kill(pid, SIGKILL);
     max_threads = sysconf(_SC_NPROCESSORS_ONLN); /* Max amount of processors to be used */
     target = nums[P_value];
     
@@ -235,14 +229,19 @@ int main(int argc, char** argv) {
     /* TODO: implement code for your experiments using data provided by datagen and your
      * serial and parallel versions of binsearch.
      * */
+    struct timespec start_2, finish_2;
+    double elapsed_2 = 0;
+    clock_gettime(CLOCK_MONOTONIC, &start_2);
 
-    compute_prime_struct *arguments = malloc(sizeof *arguments);
-
-    for (int i = 0; i < n; ++i)
-    {
-        arguments->numbers[i] = nums[i];
-        
+    if (serial_binsearch(nums, n)) {
+        printf("[serial_binsearch] target %d found.\n", target);     
     }
+    else {
+        printf("[serial_binsearch] target %d not found.\n", target);
+    }
+    clock_gettime(CLOCK_MONOTONIC, &finish_2);
+    elapsed_2 = (finish_2.tv_sec - start_2.tv_sec);
+    elapsed_2 += (finish_2.tv_sec - start_2.tv_sec) / 1000000000.0;
 
     struct timespec start, finish;
     double elapsed = 0;
@@ -250,11 +249,11 @@ int main(int argc, char** argv) {
 
     pthread_t threads[max_threads];
     for (int i = 0; i < max_threads; i++)
-        pthread_create(&threads[i], NULL, parallel_binsearch, arguments);
+        pthread_create(&threads[i], NULL, parallel_binsearch, (void*)NULL);
  
     for (int i = 0; i < max_threads; i++)
         pthread_join(threads[i], NULL);
-    if (found) {
+    if (!found) {
         printf("[parallel_binsearch] target %d found.\n", target);
     }
     else {
@@ -266,8 +265,6 @@ int main(int argc, char** argv) {
     elapsed = (finish.tv_sec - start.tv_sec);
     elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
 
-    // Time elapsed in seconds.
-    free(arguments);
-    printf("%lf\n", elapsed);
+    printf("%d,%d,%lf,%lf\n", E_value, T_value, elapsed_2, elapsed);
     exit(EXIT_SUCCESS);
 }

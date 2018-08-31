@@ -8,6 +8,8 @@
 #include <string.h>
 #include "types.h"
 #include "const.h"
+#include <pthread.h>
+
 
 int cmpfunc (const void * a, const void * b) {
     const unsigned int ua = *(const unsigned int*) a;
@@ -118,15 +120,15 @@ int main(int argc, char** argv) {
             }
             else if (strstr(cmd, DATAGEN_END_CMD) != NULL) {
                 printf("[datagen] Now exiting.\n");
-                exit(0);
             }
             else {
                 perror("[datagen] Command not understood!\n");
             }
         }
         if (rc == -1) {
-            perror("[datagen] error reading.\n");
-            exit(-1);
+            //perror("[datagen] error reading.\n");
+            //exit(-1);
+            break;
         }
         else if (rc == 0) {
             continue;
