@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall
+CFLAGS=-Wall -std=c11 -Werror 
 
 all: binsearch datagen
 
@@ -14,3 +14,4 @@ util.o:
 
 clean:
 	rm datagen binsearch *.o
+	clear
