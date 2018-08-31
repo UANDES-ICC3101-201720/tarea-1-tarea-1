@@ -142,10 +142,7 @@ int main(int argc, char** argv) {
     
     // Variables
     struct sockaddr_un addr;
-    char buf[100];
-    char buf2[10000];
-    int fd, rs;
-    unsigned int *datagen_numbers = NULL;
+    int fd;
     n = pow(10, T_value); /*Amount of values in the array */
 
     if ( (fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1 ){
@@ -158,13 +155,6 @@ int main(int argc, char** argv) {
 
 
     strcpy(addr.sun_path, "/tmp/dg.sock");
-    //if (strcmp(socket_path, DSOCKET_PATH) == 0) {
-    //    strcpy(addr.sun_path, DSOCKET_PATH);
-    //    // *addr.sun_path = DSOCKET_PATH;
-    //    strncpy(addr.sun_path + 1, socket_path + 1, sizeof(addr.sun_path - 2));
-    //} else {
-    //    strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
-    //}
 
     while ( connect(fd, (struct sockaddr*)&addr, sizeof(addr)) == -1){
         perror("[binsearch] connect error");
@@ -172,7 +162,6 @@ int main(int argc, char** argv) {
 
     if ( connect(fd, (struct sockaddr*)&addr, sizeof(addr)) != -1){
         printf("[binsearch] connected");
-        //exit(-1);
     }
 
     // begin
@@ -182,26 +171,16 @@ int main(int argc, char** argv) {
         perror("[binsearch] Error giving starting_instruction.");
         exit(-1);
     }
-
-    int leidos = 0;
     // leo lo que me entrega el servidor
-    rs = (int) read(fd, buf2, sizeof(buf2));
-    if (rs > 0){
-        int i = 0;
-        leidos = 4;
-        datagen_numbers = (unsigned int *) &buf2 + leidos;
-        while(leidos != n) {
-            // los primeros 4 chars son: "OK\n\n"
-            // aqui se supone que deberia empezar a dar unsigned ints
-            nums[i] = datagen_numbers[0]/10000;
-            //printf("%d Numero: %u\n",i, nums[i]);
-            *datagen_numbers+=sizeof(unsigned int *);
-            if(datagen_numbers[0] <= nums[i]){
-                printf("[DEBUG] anterior: %u, actual: %u ", nums[i], datagen_numbers[0]); 
-            }
-            leidos = leidos + 1;
-            i++;
-        }
+    long unsigned int readvalues = 0;
+    size_t numvalues = pow(10, T_value);
+    size_t readbytes = 0;
+
+    UINT *readbuf = malloc(sizeof(UINT) * numvalues);
+    while(readvalues < numvalues) {
+        readbytes = read(fd, readbuf + readvalues, sizeof(UINT)*1000);
+        readvalues += readbytes / 4;
+    }
 
     if(write(fd, DATAGEN_END_CMD, sizeof(DATAGEN_END_CMD)) == -1){
         // AQUI DEBERIA TERMINAR EL PROCESO DEL DATAGEN Y SEGUIR CON LO DEL OUTPUT...
@@ -209,11 +188,9 @@ int main(int argc, char** argv) {
         exit(-1);
     }
 
-        memset(buf, 0, sizeof(buf));
-        memset(buf2, 0, sizeof(buf2));
+        //memset(buf, 0, sizeof(buf));
+        //memset(buf2, 0, sizeof(buf2));
 
-    }
-    kill(pid, SIGKILL);
     max_threads = sysconf(_SC_NPROCESSORS_ONLN); /* Max amount of processors to be used */
     target = nums[P_value];
     
@@ -225,31 +202,33 @@ int main(int argc, char** argv) {
     /* TODO: implement code for your experiments using data provided by datagen and your
      * serial and parallel versions of binsearch.
      * */
-    for(int i = 0; i < E_value; i++){
-    struct timespec start, finish;
-    double elapsed = 0;
-    clock_gettime(CLOCK_MONOTONIC, &start);
-    pthread_t threads[max_threads];
-    for (int i = 0; i < max_threads; i++)
-        pthread_create(&threads[i], NULL, parallel_binsearch, (void*)NULL);
- 
-    for (int i = 0; i < max_threads; i++)
-        pthread_join(threads[i], NULL);
-    clock_gettime(CLOCK_MONOTONIC, &finish);
-    /* Probe time elapsed. */
-    elapsed = (finish.tv_sec - start.tv_sec);
-    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    for(int i = 0; i < E_value - 1; i++) {
+        struct timespec start, finish;
+        double elapsed = 0;
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        pthread_t threads[max_threads];
+        for (int i = 0; i < max_threads; i++)
+            pthread_create(&threads[i], NULL, parallel_binsearch, (void*)NULL);
+     
+        for (int i = 0; i < max_threads; i++)
+            pthread_join(threads[i], NULL);
+        clock_gettime(CLOCK_MONOTONIC, &finish);
+        /* Probe time elapsed. */
+        elapsed = (finish.tv_sec - start.tv_sec);
+        elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
 
 
-    struct timespec start_2, finish_2;
-    double elapsed_2 = 0;
-    clock_gettime(CLOCK_MONOTONIC, &start_2);
-    clock_gettime(CLOCK_MONOTONIC, &finish_2);
-    elapsed_2 = (finish_2.tv_sec - start_2.tv_sec);
-    elapsed_2 += (finish_2.tv_sec - start_2.tv_sec) / 1000000000.0;
+        struct timespec start_2, finish_2;
+        double elapsed_2 = 0;
+        clock_gettime(CLOCK_MONOTONIC, &start_2);
+        serial_binsearch(nums, n);
+        clock_gettime(CLOCK_MONOTONIC, &finish_2);
+        elapsed_2 = (finish_2.tv_sec - start_2.tv_sec);
+        elapsed_2 += (finish_2.tv_sec - start_2.tv_sec) / 1000000000.0;
 
-    //printf("i = %d\n", i + 1);
-    printf("%d,%d,%lf,%lf\n", E_value, T_value, elapsed_2, elapsed);
-}
+        //printf("i = %d\n", i + 1);
+        printf("%d,%d,%lf,%lf\n", E_value, T_value, elapsed_2, elapsed);
+    }
+    free(readbuf);
     exit(EXIT_SUCCESS);
 }

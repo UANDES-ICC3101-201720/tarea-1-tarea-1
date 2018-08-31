@@ -1,0 +1,33 @@
+Descripcion del algoritmo
+
+El algoritmo de busqueda binario (binary search o binsearch) consiste en una busqueda dentro de un arreglo de numero ordenados. Para encontrar un numero se siguen los siguientes pasos:
+	1. Se verifica si el numero localizado en la mitad del arreglo es el buscado.
+	2. Si no es el numero buscado, se verifica si es mayor o menor.
+	3. Si es mayor, se utilizará la mitad superior para seguir buscando.
+	4. Si es menor, se utilizará la mitad inferior para seguir buscando.
+	5. Si el 'target' es encontrado terminar el algoritmo.
+	6. Si no, volver a iniciar.
+
+EL codigo en C se vería algo así:
+
+int target; // numero buscado
+bool serial_binsearch(unsigned int array[], int n) {
+    int done = false;
+    int low = 0, mid, high = n-1; 	// se definen cuales son los indices inicial, medio y final
+    while (low <= high && !done) {
+         mid = (low + high) / 2; 	// se define la mitad del arreglo o sub-arreglo para buscar el target
+         if (array[mid] < target) {
+            low = mid + 1; 			// el sub arreglo partiría de la mitad + 1
+        }
+         else if (array[mid] > target) {
+            high = mid - 1; 		// el sub arreglo terminaría en la mitad - 1
+        }
+        else if (array[mid] == target)  {
+            done = true;			// se encuentra el target
+            break;
+        }
+     }
+     return done;  					//se retorna true o false
+}
+
+Problemas y limitaciones
