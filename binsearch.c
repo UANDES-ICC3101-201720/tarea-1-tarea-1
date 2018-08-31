@@ -16,7 +16,7 @@
 #include <signal.h>
 
 int n;
-unsigned int nums[10000000];
+unsigned int nums[100000000];
 int target;
 bool found = false;
 int max_threads;
@@ -144,7 +144,7 @@ int main(int argc, char** argv) {
     struct sockaddr_un addr;
     char buf[100];
     char buf2[10000];
-    int fd, rc, rs;
+    int fd, rs;
     unsigned int *datagen_numbers = NULL;
     n = pow(10, T_value); /*Amount of values in the array */
 
@@ -178,44 +178,37 @@ int main(int argc, char** argv) {
     // begin
     char starting_instruction[] = "BEGIN S ";
     strcat(starting_instruction, char_T_val); //instruccion completa de inicio
-    while ( (rc = read(STDIN_FILENO, buf, sizeof(buf))) > 0 ){
-        if(strcmp(buf, "END")>=0){
-            // AQUI DEBERIA TERMINAR EL PROCESO DEL DATAGEN Y SEGUIR CON LO DEL OUTPUT...
-            break;   
-        }
-        printf("[binsearch] datagen reads the input. \n");
-        if(write(fd, buf, rc) != rc){
-            printf("[binsearch] binsearch writes to datagen.\n");
+    if (write(fd, starting_instruction, sizeof(starting_instruction)) == -1) {
+        perror("[binsearch] Error giving starting_instruction.");
+        exit(-1);
+    }
 
-            if (rc > 0){
-                printf("[binsearch] rc > 0\n");
+    int leidos = 0;
+    // leo lo que me entrega el servidor
+    rs = (int) read(fd, buf2, sizeof(buf2));
+    if (rs > 0){
+        int i = 0;
+        leidos = 4;
+        datagen_numbers = (unsigned int *) &buf2 + leidos;
+        while(leidos != n) {
+            // los primeros 4 chars son: "OK\n\n"
+            // aqui se supone que deberia empezar a dar unsigned ints
+            nums[i] = datagen_numbers[0]/10000;
+            //printf("%d Numero: %u\n",i, nums[i]);
+            *datagen_numbers+=sizeof(unsigned int *);
+            if(datagen_numbers[0] <= nums[i]){
+                printf("[DEBUG] anterior: %u, actual: %u ", nums[i], datagen_numbers[0]); 
             }
-            else {
-                perror("[binsearch] write error.");
-                exit(-1);
-            }
+            leidos = leidos + 1;
+            i++;
         }
-        int leidos = 0;
-        // leo lo que me entrega el servidor
-        rs = (int) read(fd, buf2, sizeof(buf2));
-        if (rs > 0){
-            int i = 0;
-            leidos = 4;
-            datagen_numbers = (unsigned int *) &buf2 + leidos;
-            while(leidos != n) {
-                // los primeros 4 chars son: "OK\n\n"
-                // aqui se supone que deberia empezar a dar unsigned ints
-                nums[i] = datagen_numbers[0];
-                //printf("%d Numero: %u\n",i, nums[i]);
-                *datagen_numbers+=sizeof(unsigned int *);
-                if(datagen_numbers[0] <= nums[i]){
-                    printf("[DEBUG] anterior: %u, actual: %u ", nums[i], datagen_numbers[0]); 
-                }
-                leidos = leidos + 1;
-                i++;
-            }
 
-        }
+    if(write(fd, DATAGEN_END_CMD, sizeof(DATAGEN_END_CMD)) == -1){
+        // AQUI DEBERIA TERMINAR EL PROCESO DEL DATAGEN Y SEGUIR CON LO DEL OUTPUT...
+        perror("[binsearch] Error terminating datagen.");
+        exit(-1);
+    }
+
         memset(buf, 0, sizeof(buf));
         memset(buf2, 0, sizeof(buf2));
 
@@ -236,14 +229,6 @@ int main(int argc, char** argv) {
     struct timespec start_2, finish_2;
     double elapsed_2 = 0;
     clock_gettime(CLOCK_MONOTONIC, &start_2);
-
-    if (serial_binsearch(nums, n)) {
-        printf("[serial_binsearch] target %d found.\n", target);     
-    }
-    else {
-        printf("[serial_binsearch] target %d not found.\n", target);
-    }
-
     clock_gettime(CLOCK_MONOTONIC, &finish_2);
     elapsed_2 = (finish_2.tv_sec - start_2.tv_sec);
     elapsed_2 += (finish_2.tv_sec - start_2.tv_sec) / 1000000000.0;
@@ -251,25 +236,17 @@ int main(int argc, char** argv) {
     struct timespec start, finish;
     double elapsed = 0;
     clock_gettime(CLOCK_MONOTONIC, &start);
-
     pthread_t threads[max_threads];
     for (int i = 0; i < max_threads; i++)
         pthread_create(&threads[i], NULL, parallel_binsearch, (void*)NULL);
  
     for (int i = 0; i < max_threads; i++)
         pthread_join(threads[i], NULL);
-    if (found) {
-        printf("[parallel_binsearch] target %d found.\n", target);
-    }
-    else {
-        printf("[parallel_binsearch] target %d not found.\n", target);
-    }
-
     clock_gettime(CLOCK_MONOTONIC, &finish);
     /* Probe time elapsed. */
     elapsed = (finish.tv_sec - start.tv_sec);
     elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
-
+    //printf("i = %d\n", i + 1);
     printf("%d,%d,%lf,%lf\n", E_value, T_value, elapsed_2, elapsed);
 }
     exit(EXIT_SUCCESS);
