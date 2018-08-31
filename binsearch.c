@@ -226,13 +226,6 @@ int main(int argc, char** argv) {
      * serial and parallel versions of binsearch.
      * */
     for(int i = 0; i < E_value; i++){
-    struct timespec start_2, finish_2;
-    double elapsed_2 = 0;
-    clock_gettime(CLOCK_MONOTONIC, &start_2);
-    clock_gettime(CLOCK_MONOTONIC, &finish_2);
-    elapsed_2 = (finish_2.tv_sec - start_2.tv_sec);
-    elapsed_2 += (finish_2.tv_sec - start_2.tv_sec) / 1000000000.0;
-
     struct timespec start, finish;
     double elapsed = 0;
     clock_gettime(CLOCK_MONOTONIC, &start);
@@ -246,6 +239,15 @@ int main(int argc, char** argv) {
     /* Probe time elapsed. */
     elapsed = (finish.tv_sec - start.tv_sec);
     elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+
+
+    struct timespec start_2, finish_2;
+    double elapsed_2 = 0;
+    clock_gettime(CLOCK_MONOTONIC, &start_2);
+    clock_gettime(CLOCK_MONOTONIC, &finish_2);
+    elapsed_2 = (finish_2.tv_sec - start_2.tv_sec);
+    elapsed_2 += (finish_2.tv_sec - start_2.tv_sec) / 1000000000.0;
+
     //printf("i = %d\n", i + 1);
     printf("%d,%d,%lf,%lf\n", E_value, T_value, elapsed_2, elapsed);
 }
