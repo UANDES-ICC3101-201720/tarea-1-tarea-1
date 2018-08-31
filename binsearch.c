@@ -253,7 +253,7 @@ int main(int argc, char** argv) {
  
     for (int i = 0; i < max_threads; i++)
         pthread_join(threads[i], NULL);
-    if (!found) {
+    if (found) {
         printf("[parallel_binsearch] target %d found.\n", target);
     }
     else {
