@@ -8,6 +8,8 @@ El algoritmo de busqueda binario (binary search o binsearch) consiste en una bus
 	5. Si el 'target' es encontrado terminar el algoritmo.
 	6. Si no, volver a iniciar.
 
+
+
 EL codigo en C se vería algo así:
 
 int target; // numero buscado
@@ -29,6 +31,9 @@ bool serial_binsearch(unsigned int array[], int n) {
      }
      return done;  					//se retorna true o false
 }
+
+Para implementar el algoritmo usando threads, lo que se hizo fue darle a cada thread una porcion del arreglo, definiendo un limite de busqueda para cada thread, usando la funcion sysconf(_SC_NPROCESSORS_ONLN); de la libreria unistd.h se puede saber cuantos cores se pueden usar dado el hardware donde se esta ejecutando el proceso principal. Luego para definir los parametros a usar por cada thread se hace uns estructura que contiene esta información y luego pasarsela al thread. El algortimo no tiene muchos cambios respecto a su version serial ya que el flujo de este algoritmo será exactamente el mismo pero repartido paralelamente entre cada thread.
+
 
 Problemas y limitaciones
 
