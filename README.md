@@ -46,7 +46,7 @@ bool serial_binsearch(unsigned int array[], int n) {
 }
 ```
 Para implementar el algoritmo usando threads, lo que se hizo fue darle a cada thread una porcion
-del arreglo, definiendo un limite de busqueda para cada thread, usando la funci ́on de la libreria
+del arreglo, definiendo un limite de busqueda para cada thread, usando la función de la libreria
 unistd.h sysconf(_S_CN_PROCESSORSON_LN), se puede saber cuántos cores se pueden usar dado
 el hardware donde se esta ejecutando el proceso principal. Luego para definir los parametros a usar
 por cada thread se hace uns estructura que contiene esta información y luego pasársela al thread.
@@ -56,7 +56,7 @@ será exactamente el mismo pero repartido paralelamente entre cada thread.
 
 ## 2. Análisis de Resultados.
 
-Para obtener los tiempos de ejecución de la función serial y paralela de binsearch, se utiliz ́o el
+Para obtener los tiempos de ejecución de la función serial y paralela de binsearch, se utilizó el
 mótodo clock_gettime. Los resultados fueron los siguientes:
 
 1. Para T= 4:
@@ -107,7 +107,7 @@ posibilidad es que se haya medido el tiempo de CPU y no el de ejecución en el c
 ## 3. Conclusiones.
 
 Dados el análisis, se puede observar que el paralelizar el algoritmo serial, como lo hicimos, no
-mejora el rendimiento de la b ́usqueda binaria.
+mejora el rendimiento de la búsqueda binaria.
 
 ## 4. Problemas Encontrados y Limitaciones.
 
